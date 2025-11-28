@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>감성적인 명상 타이머</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="meditation-circle" id="meditationCircle">
+            <div class="circle-inner"></div>
+        </div>
+        
+        <div class="timer-display" id="timerDisplay">
+            00:00
+        </div>
+        
+        <div class="controls">
+            <button class="time-btn" data-minutes="1">1분</button>
+            <button class="time-btn" data-minutes="3">3분</button>
+            <button class="time-btn" data-minutes="5">5분</button>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="control-btn" id="startBtn">시작</button>
+            <button class="control-btn" id="pauseBtn" style="display: none;">일시정지</button>
+            <button class="control-btn" id="resetBtn">리셋</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
+
