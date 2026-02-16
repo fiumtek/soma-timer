@@ -1,0 +1,15 @@
+{
+  "name": "arbitrage-monitor",
+  "version": "1.0.0",
+  "description": "빗썸 ↔ Gate.io 차익거래 모니터 (Gate.io 렌딩 가능 코인 전용)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.16.0",
+    "node-fetch": "^2.7.0"
+  }
+}
