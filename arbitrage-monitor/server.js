@@ -346,23 +346,24 @@ function broadcastData() {
 // --- Startup ---
 
 async function start() {
+  // 서버를 먼저 시작 (API 실패와 무관하게 접속 가능)
+  server.listen(PORT, () => {
+    console.log(`Arbitrage monitor running at http://localhost:${PORT}`);
+    console.log(`Update interval: ${UPDATE_INTERVAL / 1000}s`);
+  });
+
   console.log('Fetching initial data...');
   await fetchArbitrageData();
   if (cachedData) {
     console.log(`Loaded ${cachedData.positiveCount} profitable pairs / ${cachedData.allCount} total (USDT/KRW: ${cachedData.usdtKrw})`);
   } else {
-    console.log('Initial fetch failed, will retry...');
+    console.log('Initial fetch failed, will retry on next interval...');
   }
 
   setInterval(async () => {
     await fetchArbitrageData();
     broadcastData();
   }, UPDATE_INTERVAL);
-
-  server.listen(PORT, () => {
-    console.log(`Arbitrage monitor running at http://localhost:${PORT}`);
-    console.log(`Update interval: ${UPDATE_INTERVAL / 1000}s`);
-  });
 }
 
 start();
