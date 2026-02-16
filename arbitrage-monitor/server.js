@@ -9,18 +9,14 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
-const UPDATE_INTERVAL = 8000;
+const UPDATE_INTERVAL = 3000; // 3초 간격
 
-// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- API Helpers ---
 
 async function fetchJSON(url, options = {}) {
-  const res = await fetch(url, {
-    timeout: 10000,
-    ...options,
-  });
+  const res = await fetch(url, { timeout: 8000, ...options });
   if (!res.ok) throw new Error(`HTTP ${res.status} from ${url}`);
   return res.json();
 }
@@ -28,14 +24,10 @@ async function fetchJSON(url, options = {}) {
 // --- Gate.io APIs ---
 
 async function getGateioLendingCoins() {
-  // Gate.io margin lending currencies
   const data = await fetchJSON('https://api.gateio.ws/api/v4/margin/uni/currencies');
-  // Returns array of objects with currency field
   const coins = new Set();
   for (const item of data) {
-    if (item.currency) {
-      coins.add(item.currency.toUpperCase());
-    }
+    if (item.currency) coins.add(item.currency.toUpperCase());
   }
   return coins;
 }
@@ -57,11 +49,37 @@ async function getGateioTickers() {
   return tickers;
 }
 
+async function getGateioCurrencies() {
+  const data = await fetchJSON('https://api.gateio.ws/api/v4/spot/currencies');
+  const status = {};
+  for (const c of data) {
+    const sym = c.currency.toUpperCase();
+    // 같은 코인의 여러 체인이 있을 수 있음 — 하나라도 가능하면 가능으로 처리
+    if (!status[sym]) {
+      status[sym] = {
+        deposit: !c.deposit_disabled,
+        withdrawal: !c.withdraw_disabled,
+        delisted: !!c.delisted,
+        chains: [],
+      };
+    } else {
+      if (!c.deposit_disabled) status[sym].deposit = true;
+      if (!c.withdraw_disabled) status[sym].withdrawal = true;
+    }
+    status[sym].chains.push({
+      chain: c.chain || '',
+      deposit: !c.deposit_disabled,
+      withdrawal: !c.withdraw_disabled,
+    });
+  }
+  return status;
+}
+
 // --- Bithumb APIs ---
 
 async function getBithumbTickers() {
   const data = await fetchJSON('https://api.bithumb.com/public/ticker/ALL_KRW');
-  if (data.status !== '0000') throw new Error('Bithumb API error: ' + data.message);
+  if (data.status !== '0000') throw new Error('Bithumb ticker error: ' + data.message);
   const tickers = {};
   for (const [symbol, info] of Object.entries(data.data)) {
     if (symbol === 'date') continue;
@@ -76,76 +94,111 @@ async function getBithumbTickers() {
 }
 
 async function getBithumbAssetStatus() {
-  // Bithumb asset status (deposit/withdrawal)
   try {
     const data = await fetchJSON('https://api.bithumb.com/public/assetsstatus/ALL');
     if (data.status !== '0000') return {};
     const status = {};
     for (const [symbol, info] of Object.entries(data.data)) {
       status[symbol.toUpperCase()] = {
-        deposit: info.deposit_status === 1,
-        withdrawal: info.withdrawal_status === 1,
+        // 빗썸 API는 정수(1/0) 또는 문자열("1"/"0") 반환 가능
+        deposit: Number(info.deposit_status) === 1,
+        withdrawal: Number(info.withdrawal_status) === 1,
       };
     }
     return status;
+  } catch (e) {
+    console.error('Bithumb asset status error:', e.message);
+    return {};
+  }
+}
+
+async function getBithumbNetworkInfo() {
+  // 멀티체인 네트워크 정보
+  try {
+    const data = await fetchJSON('https://api.bithumb.com/public/assetsstatus/multichain/ALL');
+    if (data.status !== '0000') return {};
+    const info = {};
+    for (const [symbol, chains] of Object.entries(data.data)) {
+      const sym = symbol.toUpperCase();
+      if (Array.isArray(chains)) {
+        info[sym] = chains.map(c => ({
+          network: c.net_type || c.network || '',
+          deposit: Number(c.deposit_status) === 1,
+          withdrawal: Number(c.withdrawal_status) === 1,
+        }));
+      }
+    }
+    return info;
   } catch {
     return {};
   }
 }
 
-// --- USDT/KRW rate ---
+// --- USDT/KRW ---
 
 async function getUsdtKrwRate() {
-  // Use Bithumb USDT price as KRW rate
   try {
     const data = await fetchJSON('https://api.bithumb.com/public/ticker/USDT_KRW');
     if (data.status === '0000') {
       return parseFloat(data.data.closing_price) || 1350;
     }
-  } catch {
-    // fallback
-  }
+  } catch {}
   return 1350;
 }
 
-// --- Arbitrage Calculation ---
+// --- Arbitrage Calculation (bid/ask 기반) ---
 
-const BITHUMB_FEE = 0.0025; // 0.25%
-const GATEIO_FEE = 0.002;   // 0.2%
+const BITHUMB_FEE = 0.0025;
+const GATEIO_FEE = 0.002;
 
-function calculateArbitrage(bithumbPrice, gateioPrice, usdtKrw) {
-  const gateioKrw = gateioPrice * usdtKrw;
-  if (gateioKrw === 0 || bithumbPrice === 0) return null;
+function calculateArbitrage(bithumb, gateio, usdtKrw) {
+  // Gate→빗썸: Gate에서 ask로 매수, 빗썸에서 bid로 매도
+  const gateBuyKrw = gateio.ask * usdtKrw;  // Gate에서 사는 가격 (KRW)
+  const bithumbSell = bithumb.bid;            // 빗썸에서 파는 가격 (KRW)
 
-  // Buy on Gate.io (lower), sell on Bithumb (higher) → positive = profit
-  const bithumbToGateio = ((bithumbPrice - gateioKrw) / gateioKrw) * 100;
-  // Buy on Bithumb (lower), sell on Gate.io (higher)
-  const gateioToBithumb = ((gateioKrw - bithumbPrice) / bithumbPrice) * 100;
+  // 빗썸→Gate: 빗썸에서 ask로 매수, Gate에서 bid로 매도
+  const bithumbBuy = bithumb.ask;             // 빗썸에서 사는 가격 (KRW)
+  const gateSellKrw = gateio.bid * usdtKrw;  // Gate에서 파는 가격 (KRW)
 
-  // Net after fees
-  const totalFee = (BITHUMB_FEE + GATEIO_FEE) * 100; // 0.45%
-  const netBithumbToGateio = bithumbToGateio - totalFee;
-  const netGateioToBithumb = gateioToBithumb - totalFee;
+  if (gateBuyKrw === 0 || bithumbSell === 0 || bithumbBuy === 0 || gateSellKrw === 0) return null;
 
-  let direction, grossPct, netPct;
-  if (bithumbToGateio > gateioToBithumb) {
+  // Gate→빗썸 수익률 (Gate에서 사서 빗썸에서 팔기)
+  const grossGateToBithumb = ((bithumbSell - gateBuyKrw) / gateBuyKrw) * 100;
+  // 빗썸→Gate 수익률 (빗썸에서 사서 Gate에서 팔기)
+  const grossBithumbToGate = ((gateSellKrw - bithumbBuy) / bithumbBuy) * 100;
+
+  const totalFeePct = (BITHUMB_FEE + GATEIO_FEE) * 100; // 0.45%
+
+  let direction, grossPct, netPct, buyPrice, sellPrice;
+
+  if (grossGateToBithumb > grossBithumbToGate) {
     direction = 'Gate→빗썸';
-    grossPct = bithumbToGateio;
-    netPct = netBithumbToGateio;
+    grossPct = grossGateToBithumb;
+    netPct = grossGateToBithumb - totalFeePct;
+    buyPrice = gateBuyKrw;
+    sellPrice = bithumbSell;
   } else {
     direction = '빗썸→Gate';
-    grossPct = gateioToBithumb;
-    netPct = netGateioToBithumb;
+    grossPct = grossBithumbToGate;
+    netPct = grossBithumbToGate - totalFeePct;
+    buyPrice = bithumbBuy;
+    sellPrice = gateSellKrw;
   }
 
   return {
-    bithumbPrice,
-    gateioPrice,
-    gateioKrw: Math.round(gateioKrw),
-    priceDiff: Math.round(bithumbPrice - gateioKrw),
+    bithumbBid: bithumb.bid,
+    bithumbAsk: bithumb.ask,
+    bithumbLast: bithumb.last,
+    gateioLast: gateio.last,
+    gateioBid: gateio.bid,
+    gateioAsk: gateio.ask,
+    gateioKrw: Math.round(gateio.last * usdtKrw),
+    buyPrice: Math.round(buyPrice),
+    sellPrice: Math.round(sellPrice),
+    priceDiff: Math.round(sellPrice - buyPrice),
     direction,
-    grossPct: parseFloat(grossPct.toFixed(2)),
-    netPct: parseFloat(netPct.toFixed(2)),
+    grossPct: parseFloat(grossPct.toFixed(3)),
+    netPct: parseFloat(netPct.toFixed(3)),
   };
 }
 
@@ -155,17 +208,46 @@ let cachedData = null;
 let lastUpdate = null;
 let errorMsg = null;
 
+// 렌딩 코인/Gate 통화 상태는 30초마다만 갱신 (변동 적음)
+let cachedLendingCoins = null;
+let cachedGateioStatus = null;
+let cachedBithumbNetwork = null;
+let slowCacheTime = 0;
+const SLOW_CACHE_TTL = 30000;
+
+async function fetchSlowData() {
+  const now = Date.now();
+  if (cachedLendingCoins && (now - slowCacheTime) < SLOW_CACHE_TTL) {
+    return {
+      lendingCoins: cachedLendingCoins,
+      gateioStatus: cachedGateioStatus,
+      bithumbNetwork: cachedBithumbNetwork,
+    };
+  }
+  const [lendingCoins, gateioStatus, bithumbNetwork] = await Promise.all([
+    getGateioLendingCoins(),
+    getGateioCurrencies(),
+    getBithumbNetworkInfo(),
+  ]);
+  cachedLendingCoins = lendingCoins;
+  cachedGateioStatus = gateioStatus;
+  cachedBithumbNetwork = bithumbNetwork;
+  slowCacheTime = now;
+  return { lendingCoins, gateioStatus, bithumbNetwork };
+}
+
 async function fetchArbitrageData() {
   try {
-    const [lendingCoins, gateioTickers, bithumbTickers, assetStatus, usdtKrw] =
+    const [slowData, gateioTickers, bithumbTickers, bithumbAsset, usdtKrw] =
       await Promise.all([
-        getGateioLendingCoins(),
+        fetchSlowData(),
         getGateioTickers(),
         getBithumbTickers(),
         getBithumbAssetStatus(),
         getUsdtKrwRate(),
       ]);
 
+    const { lendingCoins, gateioStatus, bithumbNetwork } = slowData;
     const results = [];
 
     for (const symbol of lendingCoins) {
@@ -173,36 +255,53 @@ async function fetchArbitrageData() {
       const bt = bithumbTickers[symbol];
       if (!gt || !bt) continue;
       if (gt.last === 0 || bt.last === 0) continue;
+      if (gt.bid === 0 || gt.ask === 0 || bt.bid === 0 || bt.ask === 0) continue;
 
-      const arb = calculateArbitrage(bt.last, gt.last, usdtKrw);
+      const arb = calculateArbitrage(bt, gt, usdtKrw);
       if (!arb) continue;
 
-      const asset = assetStatus[symbol] || { deposit: false, withdrawal: false };
-      const volumeKrw = bt.volume * bt.last;
+      // 빗썸 입출금 상태
+      const bAsset = bithumbAsset[symbol] || { deposit: false, withdrawal: false };
+      // 빗썸 네트워크 정보
+      const bNetwork = bithumbNetwork[symbol] || [];
+      // Gate.io 입출금 상태
+      const gAsset = gateioStatus[symbol] || { deposit: false, withdrawal: false, chains: [] };
 
-      // Estimated profit per 1,000,000 KRW trade
+      const volumeKrw = bt.volume * bt.last;
       const profitPer1M = Math.round((arb.netPct / 100) * 1000000);
 
       results.push({
         symbol,
         ...arb,
         usdtKrw,
-        depositStatus: asset.deposit,
-        withdrawalStatus: asset.withdrawal,
+        // 빗썸
+        bithumbDeposit: bAsset.deposit,
+        bithumbWithdrawal: bAsset.withdrawal,
+        bithumbNetworks: bNetwork,
+        // Gate.io
+        gateioDeposit: gAsset.deposit,
+        gateioWithdrawal: gAsset.withdrawal,
+        gateioChains: gAsset.chains || [],
+        // 거래량
         bithumbVolume24h: volumeKrw,
         gateioVolume24h: gt.volume * gt.last * usdtKrw,
         profitPer1M,
       });
     }
 
-    // Sort by net profit descending
+    // 순수익률 내림차순 정렬 → 양수만 → 상위 15개
     results.sort((a, b) => b.netPct - a.netPct);
+    const topResults = results.filter(r => r.netPct > 0).slice(0, 15);
+
+    // 양수 수익이 15개 미만이면 음수 중 가장 높은 것도 포함해 최소 보여줄 수 있도록
+    // (사용자가 원하면 프론트에서 필터 해제 가능)
 
     cachedData = {
-      pairs: results,
+      pairs: topResults,
+      allCount: results.length,
+      positiveCount: results.filter(r => r.netPct > 0).length,
       usdtKrw,
       lendingCount: lendingCoins.size,
-      matchedCount: results.length,
       timestamp: new Date().toISOString(),
     };
     lastUpdate = Date.now();
@@ -216,9 +315,7 @@ async function fetchArbitrageData() {
 // --- REST API ---
 
 app.get('/api/arbitrage', (_req, res) => {
-  if (!cachedData) {
-    return res.json({ error: 'Data not yet loaded', pairs: [] });
-  }
+  if (!cachedData) return res.json({ error: 'Data not yet loaded', pairs: [] });
   res.json(cachedData);
 });
 
@@ -234,22 +331,16 @@ app.get('/api/status', (_req, res) => {
 // --- WebSocket ---
 
 wss.on('connection', (ws) => {
-  console.log('WS client connected');
-  // Send current data immediately
-  if (cachedData) {
-    ws.send(JSON.stringify(cachedData));
-  }
-  ws.on('close', () => console.log('WS client disconnected'));
+  if (cachedData) ws.send(JSON.stringify(cachedData));
+  ws.on('close', () => {});
 });
 
 function broadcastData() {
   if (!cachedData) return;
   const msg = JSON.stringify(cachedData);
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(msg);
-    }
-  });
+  for (const client of wss.clients) {
+    if (client.readyState === WebSocket.OPEN) client.send(msg);
+  }
 }
 
 // --- Startup ---
@@ -257,13 +348,12 @@ function broadcastData() {
 async function start() {
   console.log('Fetching initial data...');
   await fetchArbitrageData();
-  console.log(
-    cachedData
-      ? `Loaded ${cachedData.matchedCount} pairs (USDT/KRW: ${cachedData.usdtKrw})`
-      : 'Initial fetch failed, will retry...'
-  );
+  if (cachedData) {
+    console.log(`Loaded ${cachedData.positiveCount} profitable pairs / ${cachedData.allCount} total (USDT/KRW: ${cachedData.usdtKrw})`);
+  } else {
+    console.log('Initial fetch failed, will retry...');
+  }
 
-  // Periodic updates
   setInterval(async () => {
     await fetchArbitrageData();
     broadcastData();
@@ -271,6 +361,7 @@ async function start() {
 
   server.listen(PORT, () => {
     console.log(`Arbitrage monitor running at http://localhost:${PORT}`);
+    console.log(`Update interval: ${UPDATE_INTERVAL / 1000}s`);
   });
 }
 

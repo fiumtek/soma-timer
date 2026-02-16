@@ -6,333 +6,279 @@
   <title>빗썸 ↔ Gate.io 차익거래 모니터</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0d1117;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background: #0a0e14;
       color: #c9d1d9;
       min-height: 100vh;
     }
 
+    /* Header */
     .header {
-      background: #161b22;
-      border-bottom: 1px solid #30363d;
-      padding: 16px 24px;
+      background: linear-gradient(135deg, #111820, #161f2b);
+      border-bottom: 1px solid #1e2a3a;
+      padding: 14px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
     }
-
-    .header h1 {
-      font-size: 18px;
-      color: #f0f6fc;
-    }
-
-    .header-info {
+    .header h1 { font-size: 16px; color: #e6edf3; letter-spacing: -0.3px; }
+    .header-stats {
       display: flex;
-      gap: 16px;
-      font-size: 13px;
-      color: #8b949e;
+      gap: 14px;
+      font-size: 12px;
+      color: #7d8590;
       flex-wrap: wrap;
+      align-items: center;
     }
-
-    .header-info span { white-space: nowrap; }
-
-    .status-dot {
+    .header-stats .stat-val { color: #e6edf3; font-weight: 600; }
+    .dot {
       display: inline-block;
-      width: 8px;
-      height: 8px;
+      width: 7px; height: 7px;
       border-radius: 50%;
-      margin-right: 4px;
+      margin-right: 3px;
       vertical-align: middle;
     }
+    .dot.on { background: #3fb950; box-shadow: 0 0 6px #3fb95080; }
+    .dot.off { background: #f85149; }
 
-    .status-dot.connected { background: #3fb950; }
-    .status-dot.disconnected { background: #f85149; }
-
-    .controls {
-      background: #161b22;
-      border-bottom: 1px solid #30363d;
-      padding: 10px 24px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .controls label {
-      font-size: 13px;
-      color: #8b949e;
-    }
-
-    .controls input, .controls select {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      color: #c9d1d9;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 13px;
-    }
-
-    .controls input:focus, .controls select:focus {
-      outline: none;
-      border-color: #58a6ff;
-    }
-
-    .table-wrapper {
+    /* Table */
+    .table-wrap {
       overflow-x: auto;
-      padding: 16px 24px;
+      padding: 12px 16px;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12px;
+      table-layout: auto;
     }
-
     thead th {
-      background: #161b22;
-      color: #8b949e;
-      padding: 10px 12px;
+      background: #111820;
+      color: #7d8590;
+      padding: 8px 10px;
       text-align: right;
-      border-bottom: 1px solid #30363d;
+      border-bottom: 2px solid #1e2a3a;
       white-space: nowrap;
       cursor: pointer;
       user-select: none;
       position: sticky;
       top: 0;
-      z-index: 1;
+      z-index: 2;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
-
     thead th:first-child { text-align: left; }
-
-    thead th:hover { color: #f0f6fc; }
-
-    thead th .sort-arrow {
-      margin-left: 4px;
-      font-size: 10px;
-    }
+    thead th:hover { color: #e6edf3; }
+    thead th .arr { font-size: 9px; margin-left: 2px; opacity: 0.7; }
 
     tbody tr {
-      border-bottom: 1px solid #21262d;
-      transition: background 0.15s;
+      border-bottom: 1px solid #151d27;
+      transition: background 0.12s;
     }
-
-    tbody tr:hover { background: #161b22; }
-
+    tbody tr:hover { background: #131a24; }
+    tbody tr.highlight { background: #0d2818; }
     tbody td {
-      padding: 8px 12px;
+      padding: 7px 10px;
       text-align: right;
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
-
     tbody td:first-child {
       text-align: left;
-      font-weight: 600;
-      color: #f0f6fc;
+      font-weight: 700;
+      color: #e6edf3;
+      font-size: 13px;
     }
 
-    .positive { color: #3fb950; }
-    .negative { color: #f85149; }
-    .neutral  { color: #8b949e; }
+    .pos { color: #3fb950; }
+    .neg { color: #f85149; }
+    .dim { color: #484f58; }
 
-    .badge {
+    /* Direction badge */
+    .dir {
       display: inline-block;
-      padding: 2px 6px;
+      padding: 2px 7px;
       border-radius: 3px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+    .dir-g { background: #0c2d6b; color: #58a6ff; }
+    .dir-b { background: #3d2800; color: #d29922; }
+
+    /* Status badges */
+    .st {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+    .st-ok { color: #3fb950; }
+    .st-no { color: #f85149; }
+
+    .io-cell {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      align-items: center;
     }
 
-    .badge-ok {
-      background: #0d3320;
-      color: #3fb950;
+    /* Profit bar */
+    .profit-bar {
+      display: inline-block;
+      height: 14px;
+      border-radius: 2px;
+      vertical-align: middle;
+      margin-right: 4px;
+      min-width: 2px;
     }
+    .profit-bar.pos-bar { background: #238636; }
+    .profit-bar.neg-bar { background: #6e2b2b; }
 
-    .badge-no {
-      background: #3d1117;
-      color: #f85149;
-    }
-
-    .direction {
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 3px;
-      font-weight: 600;
-    }
-
-    .dir-gate {
-      background: #0c2d6b;
-      color: #58a6ff;
-    }
-
-    .dir-bithumb {
-      background: #3d2800;
-      color: #d29922;
-    }
-
-    .loading {
+    /* Empty state */
+    .empty {
       text-align: center;
       padding: 60px 20px;
-      color: #8b949e;
-      font-size: 15px;
+      color: #484f58;
     }
-
-    .loading .spinner {
+    .empty .spinner {
       display: inline-block;
-      width: 24px;
-      height: 24px;
-      border: 3px solid #30363d;
+      width: 22px; height: 22px;
+      border: 2px solid #1e2a3a;
       border-top-color: #58a6ff;
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 12px;
+      animation: sp 0.7s linear infinite;
+      margin-bottom: 10px;
     }
+    @keyframes sp { to { transform: rotate(360deg); } }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
-
+    /* Footer */
     .footer {
       text-align: center;
-      padding: 16px;
-      font-size: 12px;
-      color: #484f58;
-      border-top: 1px solid #21262d;
+      padding: 12px;
+      font-size: 11px;
+      color: #30363d;
+      border-top: 1px solid #151d27;
     }
 
+    /* Pulse animation for new data */
+    @keyframes flash {
+      0% { background: #1a2636; }
+      100% { background: transparent; }
+    }
+    .flash td { animation: flash 0.5s ease-out; }
+
     @media (max-width: 768px) {
-      .header { padding: 12px 16px; }
-      .controls { padding: 8px 16px; }
-      .table-wrapper { padding: 8px; }
-      table { font-size: 12px; }
-      thead th, tbody td { padding: 6px 8px; }
+      .header { padding: 10px 12px; }
+      .table-wrap { padding: 6px; }
+      table { font-size: 11px; }
+      thead th, tbody td { padding: 5px 6px; }
     }
   </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>빗썸 ↔ Gate.io 차익거래 모니터</h1>
-  <div class="header-info">
-    <span><span class="status-dot disconnected" id="wsStatus"></span> <span id="wsText">연결 중...</span></span>
-    <span>USDT/KRW: <strong id="usdtRate">-</strong></span>
-    <span>렌딩 코인: <strong id="lendingCount">-</strong></span>
-    <span>매칭: <strong id="matchedCount">-</strong></span>
-    <span>갱신: <strong id="lastUpdate">-</strong></span>
+  <h1>빗썸 ↔ Gate.io 차익거래</h1>
+  <div class="header-stats">
+    <span><span class="dot off" id="wsDot"></span><span id="wsTxt">연결 중</span></span>
+    <span>USDT <span class="stat-val" id="rate">-</span>원</span>
+    <span>렌딩 <span class="stat-val" id="lending">-</span></span>
+    <span>수익+ <span class="stat-val pos" id="profitCnt">-</span></span>
+    <span>갱신 <span class="stat-val" id="updated">-</span></span>
   </div>
 </div>
 
-<div class="controls">
-  <label>검색:</label>
-  <input type="text" id="search" placeholder="코인명..." />
-  <label>최소 수익률:</label>
-  <input type="number" id="minProfit" value="-10" step="0.1" style="width:70px" /> <span style="font-size:13px;color:#8b949e">%</span>
-  <label>입출금 가능만:</label>
-  <input type="checkbox" id="onlyActive" />
-  <label>양수 수익만:</label>
-  <input type="checkbox" id="onlyPositive" />
-</div>
-
-<div class="table-wrapper">
-  <div class="loading" id="loading">
+<div class="table-wrap">
+  <div class="empty" id="loading">
     <div class="spinner"></div>
-    <div>데이터 로딩 중...</div>
+    <div>실시간 차익거래 데이터 로딩 중...</div>
   </div>
-  <table id="dataTable" style="display:none">
+  <table id="tbl" style="display:none">
     <thead>
       <tr>
-        <th data-sort="symbol">코인 <span class="sort-arrow"></span></th>
-        <th data-sort="bithumbPrice">빗썸(KRW) <span class="sort-arrow"></span></th>
-        <th data-sort="gateioKrw">Gate.io(KRW) <span class="sort-arrow"></span></th>
-        <th data-sort="gateioPrice">Gate.io(USDT) <span class="sort-arrow"></span></th>
-        <th data-sort="priceDiff">가격차(KRW) <span class="sort-arrow"></span></th>
-        <th data-sort="direction">방향 <span class="sort-arrow"></span></th>
-        <th data-sort="grossPct">수익률(총) <span class="sort-arrow"></span></th>
-        <th data-sort="netPct">수익률(순) <span class="sort-arrow"></span></th>
-        <th data-sort="profitPer1M">수익/100만 <span class="sort-arrow"></span></th>
-        <th data-sort="bithumbVolume24h">빗썸거래량 <span class="sort-arrow"></span></th>
-        <th data-sort="depositStatus">입금 <span class="sort-arrow"></span></th>
-        <th data-sort="withdrawalStatus">출금 <span class="sort-arrow"></span></th>
+        <th data-k="symbol"># 코인<span class="arr"></span></th>
+        <th data-k="buyPrice">매수가(KRW)<span class="arr"></span></th>
+        <th data-k="sellPrice">매도가(KRW)<span class="arr"></span></th>
+        <th data-k="priceDiff">차이(KRW)<span class="arr"></span></th>
+        <th data-k="direction">방향<span class="arr"></span></th>
+        <th data-k="grossPct">총수익률<span class="arr"></span></th>
+        <th data-k="netPct">순수익률<span class="arr"></span></th>
+        <th data-k="profitPer1M">100만원당<span class="arr"></span></th>
+        <th data-k="bithumbIO">빗썸 입출금<span class="arr"></span></th>
+        <th data-k="gateioIO">Gate 입출금<span class="arr"></span></th>
+        <th data-k="bithumbVolume24h">빗썸거래량<span class="arr"></span></th>
       </tr>
     </thead>
-    <tbody id="tableBody"></tbody>
+    <tbody id="body"></tbody>
   </table>
+  <div class="empty" id="nodata" style="display:none">
+    현재 양의 수익률을 가진 차익거래 기회가 없습니다. 실시간 모니터링 중...
+  </div>
 </div>
 
 <div class="footer">
-  수수료: 빗썸 0.25% + Gate.io 0.2% = 0.45% 반영 | 8초 간격 자동 갱신 | Gate.io 렌딩 가능 코인만 표시
+  bid/ask 기반 실계산 | 수수료 빗썸 0.25% + Gate 0.2% = 0.45% 반영 | 3초 갱신 | 순수익 양수만 최대 15개 표시
 </div>
 
 <script>
 (function() {
   let data = null;
   let sortKey = 'netPct';
-  let sortDir = -1; // -1 = desc, 1 = asc
-  let ws = null;
-  let reconnectTimer = null;
+  let sortDir = -1;
+  let prevSymbols = new Set();
+  let ws, reconTimer;
 
-  const $ = (id) => document.getElementById(id);
+  const $ = id => document.getElementById(id);
 
-  // --- Format helpers ---
-  function fmtKRW(n) {
+  // --- Formatters ---
+  function fKRW(n) {
     if (n == null) return '-';
-    if (Math.abs(n) >= 1e8) return (n / 1e8).toFixed(2) + '억';
-    if (Math.abs(n) >= 1e4) return (n / 1e4).toFixed(0) + '만';
+    const a = Math.abs(n);
+    if (a >= 1e8) return (n/1e8).toFixed(2) + '억';
+    if (a >= 1e4) return (n/1e4).toFixed(0) + '만';
     return n.toLocaleString('ko-KR');
   }
-
-  function fmtPrice(n) {
+  function fPrice(n) {
     if (n == null) return '-';
     if (n >= 1000) return Math.round(n).toLocaleString('ko-KR');
     if (n >= 1) return n.toFixed(2);
     if (n >= 0.01) return n.toFixed(4);
     return n.toFixed(6);
   }
-
-  function fmtPct(n) {
+  function fPct(n) {
     if (n == null) return '-';
-    const cls = n > 0 ? 'positive' : n < 0 ? 'negative' : 'neutral';
-    const sign = n > 0 ? '+' : '';
-    return `<span class="${cls}">${sign}${n.toFixed(2)}%</span>`;
+    const c = n > 0 ? 'pos' : n < 0 ? 'neg' : 'dim';
+    const s = n > 0 ? '+' : '';
+    return `<span class="${c}">${s}${n.toFixed(3)}%</span>`;
   }
-
-  function fmtVolume(n) {
+  function fVol(n) {
     if (n == null) return '-';
-    if (n >= 1e12) return (n / 1e12).toFixed(1) + '조';
-    if (n >= 1e8) return (n / 1e8).toFixed(1) + '억';
-    if (n >= 1e4) return (n / 1e4).toFixed(0) + '만';
+    if (n >= 1e12) return (n/1e12).toFixed(1) + '조';
+    if (n >= 1e8) return (n/1e8).toFixed(1) + '억';
+    if (n >= 1e4) return (n/1e4).toFixed(0) + '만';
     return Math.round(n).toLocaleString('ko-KR');
   }
 
-  // --- Filtering ---
-  function getFiltered(pairs) {
-    const search = $('search').value.toUpperCase().trim();
-    const minProfit = parseFloat($('minProfit').value) || -999;
-    const onlyActive = $('onlyActive').checked;
-    const onlyPositive = $('onlyPositive').checked;
-
-    return pairs.filter(p => {
-      if (search && !p.symbol.includes(search)) return false;
-      if (p.netPct < minProfit) return false;
-      if (onlyActive && (!p.depositStatus || !p.withdrawalStatus)) return false;
-      if (onlyPositive && p.netPct <= 0) return false;
-      return true;
-    });
-  }
-
-  // --- Sorting ---
-  function sortPairs(pairs) {
-    return pairs.sort((a, b) => {
+  // --- Sort ---
+  function sorted(arr) {
+    return [...arr].sort((a,b) => {
       let va = a[sortKey], vb = b[sortKey];
-      if (typeof va === 'string') {
-        return sortDir * va.localeCompare(vb);
+      if (sortKey === 'bithumbIO') {
+        va = (a.bithumbDeposit?1:0) + (a.bithumbWithdrawal?1:0);
+        vb = (b.bithumbDeposit?1:0) + (b.bithumbWithdrawal?1:0);
       }
-      if (typeof va === 'boolean') {
-        va = va ? 1 : 0;
-        vb = vb ? 1 : 0;
+      if (sortKey === 'gateioIO') {
+        va = (a.gateioDeposit?1:0) + (a.gateioWithdrawal?1:0);
+        vb = (b.gateioDeposit?1:0) + (b.gateioWithdrawal?1:0);
       }
-      return sortDir * (va - vb);
+      if (typeof va === 'string') return sortDir * va.localeCompare(vb);
+      return sortDir * ((va||0) - (vb||0));
     });
   }
 
@@ -340,122 +286,108 @@
   function render() {
     if (!data || !data.pairs) return;
 
-    $('usdtRate').textContent = data.usdtKrw ? data.usdtKrw.toLocaleString('ko-KR') + '원' : '-';
-    $('lendingCount').textContent = data.lendingCount || '-';
-    $('matchedCount').textContent = data.matchedCount || '-';
+    $('rate').textContent = data.usdtKrw ? data.usdtKrw.toLocaleString('ko-KR') : '-';
+    $('lending').textContent = data.lendingCount || '-';
+    $('profitCnt').textContent = data.positiveCount || '0';
     if (data.timestamp) {
-      const d = new Date(data.timestamp);
-      $('lastUpdate').textContent = d.toLocaleTimeString('ko-KR');
+      $('updated').textContent = new Date(data.timestamp).toLocaleTimeString('ko-KR');
     }
 
-    let filtered = getFiltered(data.pairs);
-    filtered = sortPairs(filtered);
-
-    // Update sort arrows
+    // Sort arrows
     document.querySelectorAll('thead th').forEach(th => {
-      const arrow = th.querySelector('.sort-arrow');
-      if (th.dataset.sort === sortKey) {
-        arrow.textContent = sortDir === -1 ? '▼' : '▲';
-      } else {
-        arrow.textContent = '';
-      }
+      const ar = th.querySelector('.arr');
+      ar.textContent = th.dataset.k === sortKey ? (sortDir === -1 ? ' ▼' : ' ▲') : '';
     });
 
-    const tbody = $('tableBody');
-    tbody.innerHTML = filtered.map(p => {
-      const dirClass = p.direction.startsWith('Gate') ? 'dir-gate' : 'dir-bithumb';
-      const profitClass = p.profitPer1M > 0 ? 'positive' : p.profitPer1M < 0 ? 'negative' : 'neutral';
-      const diffClass = p.priceDiff > 0 ? 'positive' : p.priceDiff < 0 ? 'negative' : 'neutral';
+    const pairs = sorted(data.pairs);
+    const newSymbols = new Set(pairs.map(p => p.symbol));
 
-      return `<tr>
-        <td>${p.symbol}</td>
-        <td>${fmtPrice(p.bithumbPrice)}</td>
-        <td>${fmtPrice(p.gateioKrw)}</td>
-        <td>${fmtPrice(p.gateioPrice)}</td>
-        <td class="${diffClass}">${p.priceDiff > 0 ? '+' : ''}${fmtKRW(p.priceDiff)}</td>
-        <td><span class="direction ${dirClass}">${p.direction}</span></td>
-        <td>${fmtPct(p.grossPct)}</td>
-        <td>${fmtPct(p.netPct)}</td>
-        <td class="${profitClass}">${p.profitPer1M > 0 ? '+' : ''}${fmtKRW(p.profitPer1M)}원</td>
-        <td>${fmtVolume(p.bithumbVolume24h)}</td>
-        <td><span class="badge ${p.depositStatus ? 'badge-ok' : 'badge-no'}">${p.depositStatus ? '가능' : '불가'}</span></td>
-        <td><span class="badge ${p.withdrawalStatus ? 'badge-ok' : 'badge-no'}">${p.withdrawalStatus ? '가능' : '불가'}</span></td>
+    if (pairs.length === 0) {
+      $('tbl').style.display = 'none';
+      $('loading').style.display = 'none';
+      $('nodata').style.display = '';
+      return;
+    }
+
+    $('loading').style.display = 'none';
+    $('nodata').style.display = 'none';
+    $('tbl').style.display = '';
+
+    // Max net% for bar width
+    const maxNet = Math.max(...pairs.map(p => Math.abs(p.netPct)), 0.1);
+
+    $('body').innerHTML = pairs.map((p, i) => {
+      const isNew = !prevSymbols.has(p.symbol);
+      const dirCls = p.direction.startsWith('Gate') ? 'dir-g' : 'dir-b';
+      const diffCls = p.priceDiff > 0 ? 'pos' : p.priceDiff < 0 ? 'neg' : 'dim';
+      const profCls = p.profitPer1M > 0 ? 'pos' : p.profitPer1M < 0 ? 'neg' : 'dim';
+      const barW = Math.max(2, Math.round((Math.abs(p.netPct) / maxNet) * 40));
+      const barCls = p.netPct > 0 ? 'pos-bar' : 'neg-bar';
+
+      // 입출금 표시
+      const bD = p.bithumbDeposit;
+      const bW = p.bithumbWithdrawal;
+      const gD = p.gateioDeposit;
+      const gW = p.gateioWithdrawal;
+
+      return `<tr class="${isNew ? 'flash' : ''} ${p.netPct > 1 ? 'highlight' : ''}">
+        <td>${i+1}. ${p.symbol}</td>
+        <td>${fPrice(p.buyPrice)}</td>
+        <td>${fPrice(p.sellPrice)}</td>
+        <td class="${diffCls}">${p.priceDiff > 0 ? '+' : ''}${fKRW(p.priceDiff)}</td>
+        <td><span class="dir ${dirCls}">${p.direction}</span></td>
+        <td>${fPct(p.grossPct)}</td>
+        <td><span class="profit-bar ${barCls}" style="width:${barW}px"></span>${fPct(p.netPct)}</td>
+        <td class="${profCls}">${p.profitPer1M > 0 ? '+' : ''}${fKRW(p.profitPer1M)}원</td>
+        <td><div class="io-cell"><span class="st ${bD ? 'st-ok' : 'st-no'}">입${bD ? 'O' : 'X'}</span><span class="st ${bW ? 'st-ok' : 'st-no'}">출${bW ? 'O' : 'X'}</span></div></td>
+        <td><div class="io-cell"><span class="st ${gD ? 'st-ok' : 'st-no'}">입${gD ? 'O' : 'X'}</span><span class="st ${gW ? 'st-ok' : 'st-no'}">출${gW ? 'O' : 'X'}</span></div></td>
+        <td class="dim">${fVol(p.bithumbVolume24h)}</td>
       </tr>`;
     }).join('');
 
-    $('loading').style.display = 'none';
-    $('dataTable').style.display = '';
+    prevSymbols = newSymbols;
   }
 
   // --- Sort click ---
-  document.querySelectorAll('thead th[data-sort]').forEach(th => {
+  document.querySelectorAll('thead th[data-k]').forEach(th => {
     th.addEventListener('click', () => {
-      const key = th.dataset.sort;
-      if (sortKey === key) {
-        sortDir *= -1;
-      } else {
-        sortKey = key;
-        sortDir = key === 'symbol' ? 1 : -1;
-      }
+      const k = th.dataset.k;
+      if (sortKey === k) sortDir *= -1;
+      else { sortKey = k; sortDir = k === 'symbol' ? 1 : -1; }
       render();
     });
   });
-
-  // --- Filter events ---
-  $('search').addEventListener('input', render);
-  $('minProfit').addEventListener('input', render);
-  $('onlyActive').addEventListener('change', render);
-  $('onlyPositive').addEventListener('change', render);
 
   // --- WebSocket ---
   function connectWS() {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
     ws = new WebSocket(`${proto}://${location.host}`);
-
     ws.onopen = () => {
-      $('wsStatus').className = 'status-dot connected';
-      $('wsText').textContent = '연결됨';
-      if (reconnectTimer) {
-        clearTimeout(reconnectTimer);
-        reconnectTimer = null;
-      }
+      $('wsDot').className = 'dot on';
+      $('wsTxt').textContent = '연결됨';
+      if (reconTimer) { clearTimeout(reconTimer); reconTimer = null; }
     };
-
-    ws.onmessage = (evt) => {
-      try {
-        data = JSON.parse(evt.data);
-        render();
-      } catch (e) {
-        console.error('Parse error:', e);
-      }
+    ws.onmessage = (e) => {
+      try { data = JSON.parse(e.data); render(); } catch {}
     };
-
     ws.onclose = () => {
-      $('wsStatus').className = 'status-dot disconnected';
-      $('wsText').textContent = '재연결 중...';
-      reconnectTimer = setTimeout(connectWS, 3000);
+      $('wsDot').className = 'dot off';
+      $('wsTxt').textContent = '재연결...';
+      reconTimer = setTimeout(connectWS, 2000);
     };
-
-    ws.onerror = () => {
-      ws.close();
-    };
+    ws.onerror = () => ws.close();
   }
 
-  // --- Initial load via REST (fallback) ---
-  async function initialLoad() {
+  // REST fallback
+  async function init() {
     try {
-      const res = await fetch('/api/arbitrage');
-      const json = await res.json();
-      if (json.pairs && json.pairs.length > 0) {
-        data = json;
-        render();
-      }
-    } catch (e) {
-      console.log('REST fallback failed, waiting for WS');
-    }
+      const r = await fetch('/api/arbitrage');
+      const j = await r.json();
+      if (j.pairs && j.pairs.length > 0) { data = j; render(); }
+    } catch {}
   }
 
-  initialLoad();
+  init();
   connectWS();
 })();
 </script>
