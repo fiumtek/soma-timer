@@ -8,383 +8,113 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
-      background: #0a0e14;
-      color: #c9d1d9;
-      min-height: 100vh;
+      background: #0a0e14; color: #c9d1d9; min-height: 100vh;
     }
-    .header {
+    .hdr {
       background: linear-gradient(135deg, #111820, #161f2b);
       border-bottom: 1px solid #1e2a3a;
       padding: 14px 20px;
       display: flex; align-items: center; justify-content: space-between;
       flex-wrap: wrap; gap: 10px;
     }
-    .header h1 { font-size: 16px; color: #e6edf3; letter-spacing: -0.3px; }
-    .header-stats {
-      display: flex; gap: 14px; font-size: 12px; color: #7d8590;
-      flex-wrap: wrap; align-items: center;
-    }
-    .header-stats .v { color: #e6edf3; font-weight: 600; }
+    .hdr h1 { font-size: 16px; color: #e6edf3; letter-spacing: -0.3px; }
+    .stats { display: flex; gap: 14px; font-size: 12px; color: #7d8590; flex-wrap: wrap; align-items: center; }
+    .stats .v { color: #e6edf3; font-weight: 600; }
     .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
-    .dot.on { background: #3fb950; box-shadow: 0 0 6px #3fb95080; }
-    .dot.off { background: #f85149; }
-    .dot.load { background: #d29922; animation: blink 1s infinite; }
-    @keyframes blink { 50% { opacity: 0.3; } }
-
-    .table-wrap { overflow-x: auto; padding: 12px 16px; }
+    .dot-on { background: #3fb950; box-shadow: 0 0 6px #3fb95080; }
+    .dot-off { background: #f85149; }
+    .dot-load { background: #d29922; animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+    .wrap { overflow-x: auto; padding: 12px 16px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     thead th {
       background: #111820; color: #7d8590; padding: 8px 10px;
       text-align: right; border-bottom: 2px solid #1e2a3a;
       white-space: nowrap; cursor: pointer; user-select: none;
       position: sticky; top: 0; z-index: 2;
-      font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;
+      font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .3px;
     }
     thead th:first-child { text-align: left; }
     thead th:hover { color: #e6edf3; }
-    thead th .arr { font-size: 9px; margin-left: 2px; opacity: 0.7; }
-    tbody tr { border-bottom: 1px solid #151d27; transition: background 0.12s; }
+    thead th .a { font-size: 9px; margin-left: 2px; opacity: .7; }
+    tbody tr { border-bottom: 1px solid #151d27; transition: background .12s; }
     tbody tr:hover { background: #131a24; }
     tbody tr.hi { background: #0d2818; }
     tbody td { padding: 7px 10px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
     tbody td:first-child { text-align: left; font-weight: 700; color: #e6edf3; font-size: 13px; }
-
     .pos { color: #3fb950; } .neg { color: #f85149; } .dim { color: #484f58; }
     .dir { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 11px; font-weight: 700; }
-    .dir-g { background: #0c2d6b; color: #58a6ff; }
-    .dir-b { background: #3d2800; color: #d29922; }
+    .dg { background: #0c2d6b; color: #58a6ff; }
+    .db { background: #3d2800; color: #d29922; }
     .st { display: inline-block; font-size: 11px; font-weight: 700; }
     .st-ok { color: #3fb950; } .st-no { color: #f85149; }
-    .io { display: flex; gap: 4px; justify-content: center; align-items: center; }
+    .io { display: flex; gap: 4px; justify-content: center; }
     .bar { display: inline-block; height: 14px; border-radius: 2px; vertical-align: middle; margin-right: 4px; min-width: 2px; }
-    .bar-p { background: #238636; } .bar-n { background: #6e2b2b; }
-
+    .bp { background: #238636; } .bn { background: #6e2b2b; }
     .empty { text-align: center; padding: 60px 20px; color: #484f58; }
-    .spinner { display: inline-block; width: 22px; height: 22px; border: 2px solid #1e2a3a; border-top-color: #58a6ff; border-radius: 50%; animation: sp 0.7s linear infinite; margin-bottom: 10px; }
+    .spin { display: inline-block; width: 22px; height: 22px; border: 2px solid #1e2a3a; border-top-color: #58a6ff; border-radius: 50%; animation: sp .7s linear infinite; margin-bottom: 10px; }
     @keyframes sp { to { transform: rotate(360deg); } }
-    .footer { text-align: center; padding: 12px; font-size: 11px; color: #30363d; border-top: 1px solid #151d27; }
+    .ft { text-align: center; padding: 12px; font-size: 11px; color: #30363d; border-top: 1px solid #151d27; }
     @keyframes flash { 0% { background: #1a2636; } 100% { background: transparent; } }
-    .flash td { animation: flash 0.5s ease-out; }
-    .err-box { background: #3d1117; border: 1px solid #f8514930; color: #f85149; padding: 10px 16px; margin: 12px 16px; border-radius: 6px; font-size: 12px; }
-    .mode-box { background: #0d1117; border: 1px solid #1e2a3a; color: #7d8590; padding: 6px 12px; margin: 8px 16px; border-radius: 6px; font-size: 11px; }
+    .flash td { animation: flash .5s ease-out; }
+    .err { background: #3d1117; border: 1px solid #f8514930; color: #f85149; padding: 10px 16px; margin: 12px 16px; border-radius: 6px; font-size: 12px; }
     @media (max-width: 768px) {
-      .header { padding: 10px 12px; }
-      .table-wrap { padding: 6px; }
+      .hdr { padding: 10px 12px; }
+      .wrap { padding: 6px; }
       table { font-size: 11px; }
       thead th, tbody td { padding: 5px 6px; }
     }
   </style>
 </head>
 <body>
-
-<div class="header">
+<div class="hdr">
   <h1>빗썸 ↔ Gate.io 차익거래</h1>
-  <div class="header-stats">
-    <span><span class="dot load" id="dot"></span><span id="stxt">시작 중</span></span>
+  <div class="stats">
+    <span><span class="dot dot-load" id="dot"></span><span id="stxt">연결 중</span></span>
     <span>USDT <span class="v" id="rate">-</span>원</span>
     <span>렌딩 <span class="v" id="lcnt">-</span></span>
     <span>수익+ <span class="v pos" id="pcnt">0</span></span>
     <span>갱신 <span class="v" id="upd">-</span></span>
   </div>
 </div>
-
 <div id="errBox"></div>
-<div id="modeBox"></div>
-
-<div class="table-wrap">
-  <div class="empty" id="loading"><div class="spinner"></div><div>실시간 차익거래 데이터 로딩 중...</div></div>
+<div class="wrap">
+  <div class="empty" id="loading"><div class="spin"></div><div>서버 연결 중...</div></div>
   <table id="tbl" style="display:none">
     <thead><tr>
-      <th data-k="symbol"># 코인<span class="arr"></span></th>
-      <th data-k="buyPrice">매수가(KRW)<span class="arr"></span></th>
-      <th data-k="sellPrice">매도가(KRW)<span class="arr"></span></th>
-      <th data-k="priceDiff">차이(KRW)<span class="arr"></span></th>
-      <th data-k="direction">방향<span class="arr"></span></th>
-      <th data-k="grossPct">총수익률<span class="arr"></span></th>
-      <th data-k="netPct">순수익률<span class="arr"></span></th>
-      <th data-k="profitPer1M">100만원당<span class="arr"></span></th>
-      <th data-k="bIO">빗썸 입출금<span class="arr"></span></th>
-      <th data-k="gIO">Gate 입출금<span class="arr"></span></th>
-      <th data-k="bVol">빗썸거래량<span class="arr"></span></th>
+      <th data-k="symbol"># 코인<span class="a"></span></th>
+      <th data-k="buyPrice">매수가(KRW)<span class="a"></span></th>
+      <th data-k="sellPrice">매도가(KRW)<span class="a"></span></th>
+      <th data-k="priceDiff">차이(KRW)<span class="a"></span></th>
+      <th data-k="direction">방향<span class="a"></span></th>
+      <th data-k="grossPct">총수익률<span class="a"></span></th>
+      <th data-k="netPct">순수익률<span class="a"></span></th>
+      <th data-k="profitPer1M">100만원당<span class="a"></span></th>
+      <th data-k="bIO">빗썸 입출금<span class="a"></span></th>
+      <th data-k="gIO">Gate 입출금<span class="a"></span></th>
+      <th data-k="bVol">빗썸거래량<span class="a"></span></th>
     </tr></thead>
     <tbody id="body"></tbody>
   </table>
-  <div class="empty" id="nodata" style="display:none">현재 양의 수익률을 가진 차익거래 기회가 없습니다. 실시간 모니터링 중...</div>
+  <div class="empty" id="nodata" style="display:none">현재 양의 수익률을 가진 차익거래 기회가 없습니다.</div>
 </div>
-<div class="footer">bid/ask 기반 실계산 | 수수료 빗썸 0.25% + Gate 0.2% = 0.45% 반영 | 3초 갱신 | 순수익 양수만 최대 15개</div>
+<div class="ft">bid/ask 기반 실계산 | 수수료 빗썸 0.25% + Gate 0.2% = 0.45% 반영 | 3초 갱신</div>
 
 <script>
 (function(){
-  // ─── Config ───
-  const UPDATE = 3000;
-  const MAX_SHOW = 15;
-  const B_FEE = 0.0025, G_FEE = 0.002;
-  const TOTAL_FEE = (B_FEE + G_FEE) * 100;
-  const SLOW_TTL = 30000;
-
-  let sortKey = 'netPct', sortDir = -1;
-  let prevSyms = new Set();
-  let pairs = [];
-  let mode = 'detecting'; // 'server' or 'standalone'
-  let lendingCoins = null, gateCurrStatus = null, slowTime = 0;
-
   const $ = id => document.getElementById(id);
+  let sortKey = 'netPct', sortDir = -1, prevSyms = new Set(), pairs = [];
 
-  // ═══════════════════════════════════════════
-  // MODE 1: Server mode (via Node.js server)
-  // ═══════════════════════════════════════════
-
-  function processServerData(data) {
-    if (!data || !data.pairs) return;
-    pairs = data.pairs.map(p => ({
-      symbol: p.symbol,
-      buyPrice: p.buyPrice,
-      sellPrice: p.sellPrice,
-      diff: p.priceDiff,
-      direction: p.direction,
-      gross: p.grossPct,
-      net: p.netPct,
-      profitPer1M: p.profitPer1M,
-      bDep: p.bithumbDeposit,
-      bWth: p.bithumbWithdrawal,
-      gDep: p.gateioDeposit,
-      gWth: p.gateioWithdrawal,
-      bVol: p.bithumbVolume24h || 0,
-    }));
-    $('rate').textContent = (data.usdtKrw || 0).toLocaleString('ko-KR');
-    $('lcnt').textContent = data.lendingCount || '-';
-    $('pcnt').textContent = data.positiveCount || 0;
-    $('upd').textContent = data.timestamp ? new Date(data.timestamp).toLocaleTimeString('ko-KR') : '-';
-    $('dot').className = 'dot on';
-    $('stxt').textContent = '연결됨';
-    $('errBox').innerHTML = '';
-    render();
-  }
-
-  async function tryServerMode() {
-    try {
-      const res = await fetch('/api/arbitrage', { signal: AbortSignal.timeout(3000) });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      return data;
-    } catch(e) {
-      return null;
-    }
-  }
-
-  function startServerMode() {
-    mode = 'server';
-    $('modeBox').innerHTML = '<div class="mode-box">서버 모드 (Node.js) — WebSocket + REST</div>';
-
-    // WebSocket
-    let ws = null, wsRetry = 1000;
-    function connectWS() {
-      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-      try { ws = new WebSocket(proto + '//' + location.host); } catch(e) { setTimeout(connectWS, wsRetry); return; }
-      ws.onopen = function() { wsRetry = 1000; };
-      ws.onmessage = function(ev) { try { processServerData(JSON.parse(ev.data)); } catch(e) {} };
-      ws.onclose = function() { $('dot').className='dot off'; $('stxt').textContent='재연결 중'; setTimeout(connectWS, wsRetry); wsRetry=Math.min(wsRetry*1.5,10000); };
-      ws.onerror = function() {};
-    }
-    connectWS();
-
-    // REST polling backup
-    setInterval(async function() {
-      if (!ws || ws.readyState !== WebSocket.OPEN) {
-        const data = await tryServerMode();
-        if (data && data.pairs) processServerData(data);
-      }
-    }, 5000);
-  }
-
-  // ═══════════════════════════════════════════
-  // MODE 2: Standalone mode (direct API calls)
-  // ═══════════════════════════════════════════
-
-  // CORS proxy wrappers
-  const PROXIES = [
-    url => url,
-    url => 'https://corsproxy.io/?' + encodeURIComponent(url),
-    url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-  ];
-
-  async function apiFetch(url) {
-    let lastErr;
-    for (const mkUrl of PROXIES) {
-      try {
-        const r = await fetch(mkUrl(url), {
-          signal: AbortSignal.timeout(10000),
-          headers: { 'Accept': 'application/json' }
-        });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const text = await r.text();
-        try { return JSON.parse(text); }
-        catch(e) { throw new Error('Invalid JSON response'); }
-      } catch(e) { lastErr = e; }
-    }
-    throw lastErr;
-  }
-
-  // Gate.io APIs
-  async function gateioLending() {
-    const d = await apiFetch('https://api.gateio.ws/api/v4/margin/uni/currencies');
-    const s = new Set();
-    if (Array.isArray(d)) { for (const i of d) if (i.currency) s.add(i.currency.toUpperCase()); }
-    return s;
-  }
-  async function gateioTickers() {
-    const d = await apiFetch('https://api.gateio.ws/api/v4/spot/tickers');
-    const m = {};
-    if (Array.isArray(d)) {
-      for (const t of d) {
-        if (t.currency_pair && t.currency_pair.endsWith('_USDT')) {
-          const s = t.currency_pair.replace('_USDT','');
-          m[s] = { last:+t.last||0, vol:+t.base_volume||0, bid:+t.highest_bid||0, ask:+t.lowest_ask||0 };
-        }
-      }
-    }
-    return m;
-  }
-  async function gateioCurrencies() {
-    const d = await apiFetch('https://api.gateio.ws/api/v4/spot/currencies');
-    const m = {};
-    if (Array.isArray(d)) {
-      for (const c of d) {
-        const s = (c.currency || '').toUpperCase();
-        if (!s) continue;
-        if (!m[s]) m[s] = { dep: !c.deposit_disabled, wth: !c.withdraw_disabled };
-        else {
-          if (!c.deposit_disabled) m[s].dep = true;
-          if (!c.withdraw_disabled) m[s].wth = true;
-        }
-      }
-    }
-    return m;
-  }
-
-  // Bithumb APIs
-  async function bithumbTickers() {
-    const d = await apiFetch('https://api.bithumb.com/public/ticker/ALL_KRW');
-    if (!d || d.status !== '0000') throw new Error('Bithumb: ' + (d && d.message || 'unknown error'));
-    const m = {};
-    for (const [k,v] of Object.entries(d.data)) {
-      if (k === 'date') continue;
-      m[k.toUpperCase()] = { last:+v.closing_price||0, vol:+v.units_traded_24H||0, bid:+v.buy_price||0, ask:+v.sell_price||0 };
-    }
-    return m;
-  }
-  async function bithumbAsset() {
-    try {
-      const d = await apiFetch('https://api.bithumb.com/public/assetsstatus/ALL');
-      if (!d || d.status !== '0000') return {};
-      const m = {};
-      for (const [k,v] of Object.entries(d.data)) {
-        m[k.toUpperCase()] = { dep: Number(v.deposit_status)===1, wth: Number(v.withdrawal_status)===1 };
-      }
-      return m;
-    } catch { return {}; }
-  }
-  async function bithumbUsdtRate() {
-    try {
-      const d = await apiFetch('https://api.bithumb.com/public/ticker/USDT_KRW');
-      if (d && d.status === '0000') return +d.data.closing_price || 1350;
-    } catch {}
-    return 1350;
-  }
-
-  // Slow cache
-  async function fetchSlow() {
-    const now = Date.now();
-    if (lendingCoins && (now - slowTime) < SLOW_TTL) return;
-    const [lc, gc] = await Promise.all([gateioLending(), gateioCurrencies()]);
-    lendingCoins = lc;
-    gateCurrStatus = gc;
-    slowTime = now;
-  }
-
-  // Calc
-  function calc(bt, gt, rate) {
-    const gBuyKrw = gt.ask * rate;
-    const bSell = bt.bid;
-    const bBuy = bt.ask;
-    const gSellKrw = gt.bid * rate;
-    if (!gBuyKrw || !bSell || !bBuy || !gSellKrw) return null;
-    const g2b = ((bSell - gBuyKrw) / gBuyKrw) * 100;
-    const b2g = ((gSellKrw - bBuy) / bBuy) * 100;
-    let dir, gross, net, buy, sell;
-    if (g2b > b2g) { dir='Gate→빗썸'; gross=g2b; net=g2b-TOTAL_FEE; buy=gBuyKrw; sell=bSell; }
-    else           { dir='빗썸→Gate'; gross=b2g; net=b2g-TOTAL_FEE; buy=bBuy; sell=gSellKrw; }
-    return { dir, gross:+gross.toFixed(3), net:+net.toFixed(3),
-      buyPrice:Math.round(buy), sellPrice:Math.round(sell), diff:Math.round(sell-buy),
-      gKrw:Math.round(gt.last*rate), bLast:bt.last, gLast:gt.last };
-  }
-
-  // Standalone update
-  async function standaloneUpdate() {
-    $('dot').className = 'dot load';
-    $('stxt').textContent = '갱신 중';
-    try {
-      await fetchSlow();
-      const [gTick, bTick, bAsset, rate] = await Promise.all([
-        gateioTickers(), bithumbTickers(), bithumbAsset(), bithumbUsdtRate()
-      ]);
-
-      const results = [];
-      for (const sym of lendingCoins) {
-        const g = gTick[sym], b = bTick[sym];
-        if (!g || !b) continue;
-        if (!g.bid || !g.ask || !b.bid || !b.ask) continue;
-        const a = calc(b, g, rate);
-        if (!a) continue;
-        const ba = bAsset[sym] || { dep:false, wth:false };
-        const ga = gateCurrStatus[sym] || { dep:false, wth:false };
-        results.push({
-          symbol: sym, ...a,
-          bDep: ba.dep, bWth: ba.wth,
-          gDep: ga.dep, gWth: ga.wth,
-          bVol: b.vol * b.last,
-          profitPer1M: Math.round((a.net / 100) * 1000000),
-        });
-      }
-      results.sort((a,b) => b.net - a.net);
-      pairs = results.filter(r => r.net > 0).slice(0, MAX_SHOW);
-
-      $('rate').textContent = rate.toLocaleString('ko-KR');
-      $('lcnt').textContent = lendingCoins.size;
-      $('pcnt').textContent = results.filter(r=>r.net>0).length;
-      $('upd').textContent = new Date().toLocaleTimeString('ko-KR');
-      $('dot').className = 'dot on';
-      $('stxt').textContent = '연결됨';
-      $('errBox').innerHTML = '';
-      render();
-    } catch(e) {
-      console.error('Standalone update error:', e);
-      $('dot').className = 'dot off';
-      $('stxt').textContent = '오류';
-      $('errBox').innerHTML = '<div class="err-box">API 오류: ' + e.message + ' — ' + UPDATE/1000 + '초 후 재시도</div>';
-      if (pairs.length) render();
-    }
-  }
-
-  function startStandaloneMode() {
-    mode = 'standalone';
-    $('modeBox').innerHTML = '<div class="mode-box">독립 실행 모드 — 브라우저에서 직접 API 호출 (CORS 프록시 사용)</div>';
-    standaloneUpdate();
-    setInterval(standaloneUpdate, UPDATE);
-  }
-
-  // ═══════════════════════════════════════════
-  // Shared: Formatters & Render
-  // ═══════════════════════════════════════════
-
+  // ── Format helpers ──
   function fK(n) { const a=Math.abs(n); if(a>=1e8) return (n/1e8).toFixed(2)+'억'; if(a>=1e4) return (n/1e4).toFixed(0)+'만'; return n.toLocaleString('ko-KR'); }
-  function fP(n) { if(n>=1000) return Math.round(n).toLocaleString('ko-KR'); if(n>=1) return n.toFixed(2); if(n>=0.01) return n.toFixed(4); return n.toFixed(6); }
-  function fPct(n) { const c=n>0?'pos':n<0?'neg':'dim'; return '<span class="'+c+'">'+(n>0?'+':'')+n.toFixed(3)+'%</span>'; }
+  function fP(n) { if(n>=1000) return Math.round(n).toLocaleString('ko-KR'); if(n>=1) return n.toFixed(2); if(n>=.01) return n.toFixed(4); return n.toFixed(6); }
+  function fPct(n) { return '<span class="'+(n>0?'pos':n<0?'neg':'dim')+'">'+(n>0?'+':'')+n.toFixed(3)+'%</span>'; }
   function fVol(n) { if(n>=1e12) return (n/1e12).toFixed(1)+'조'; if(n>=1e8) return (n/1e8).toFixed(1)+'억'; if(n>=1e4) return (n/1e4).toFixed(0)+'만'; return Math.round(n).toLocaleString('ko-KR'); }
 
+  // ── Render ──
   function render() {
     document.querySelectorAll('thead th').forEach(th => {
-      const ar = th.querySelector('.arr');
+      const ar = th.querySelector('.a');
       ar.textContent = th.dataset.k === sortKey ? (sortDir===-1?' ▼':' ▲') : '';
     });
     const list = [...pairs].sort((a,b) => {
@@ -399,20 +129,20 @@
       return;
     }
     $('loading').style.display='none'; $('nodata').style.display='none'; $('tbl').style.display='';
-    const mx = Math.max(...list.map(p=>Math.abs(p.net)), 0.1);
+    const mx = Math.max(...list.map(p=>Math.abs(p.netPct)), 0.1);
     const newSyms = new Set(list.map(p=>p.symbol));
     $('body').innerHTML = list.map((p,i) => {
       const isNew = !prevSyms.has(p.symbol);
-      const dc = p.direction.startsWith('Gate')?'dir-g':'dir-b';
-      const bw = Math.max(2, Math.round((Math.abs(p.net)/mx)*40));
-      return '<tr class="'+(isNew?'flash':'')+' '+(p.net>1?'hi':'')+'">'+
+      const dc = p.direction.startsWith('Gate')?'dg':'db';
+      const bw = Math.max(2, Math.round((Math.abs(p.netPct)/mx)*40));
+      return '<tr class="'+(isNew?'flash':'')+' '+(p.netPct>1?'hi':'')+'">'+
         '<td>'+(i+1)+'. '+p.symbol+'</td>'+
         '<td>'+fP(p.buyPrice)+'</td>'+
         '<td>'+fP(p.sellPrice)+'</td>'+
-        '<td class="'+(p.diff>0?'pos':'neg')+'">'+(p.diff>0?'+':'')+fK(p.diff)+'</td>'+
+        '<td class="'+(p.priceDiff>0?'pos':'neg')+'">'+(p.priceDiff>0?'+':'')+fK(p.priceDiff)+'</td>'+
         '<td><span class="dir '+dc+'">'+p.direction+'</span></td>'+
-        '<td>'+fPct(p.gross)+'</td>'+
-        '<td><span class="bar '+(p.net>0?'bar-p':'bar-n')+'" style="width:'+bw+'px"></span>'+fPct(p.net)+'</td>'+
+        '<td>'+fPct(p.grossPct)+'</td>'+
+        '<td><span class="bar '+(p.netPct>0?'bp':'bn')+'" style="width:'+bw+'px"></span>'+fPct(p.netPct)+'</td>'+
         '<td class="'+(p.profitPer1M>0?'pos':'neg')+'">'+(p.profitPer1M>0?'+':'')+fK(p.profitPer1M)+'원</td>'+
         '<td><div class="io"><span class="st '+(p.bDep?'st-ok':'st-no')+'">입'+(p.bDep?'O':'X')+'</span><span class="st '+(p.bWth?'st-ok':'st-no')+'">출'+(p.bWth?'O':'X')+'</span></div></td>'+
         '<td><div class="io"><span class="st '+(p.gDep?'st-ok':'st-no')+'">입'+(p.gDep?'O':'X')+'</span><span class="st '+(p.gWth?'st-ok':'st-no')+'">출'+(p.gWth?'O':'X')+'</span></div></td>'+
@@ -422,7 +152,20 @@
     prevSyms = newSyms;
   }
 
-  // Sort
+  function onData(d) {
+    if (!d || !d.pairs) return;
+    pairs = d.pairs;
+    $('rate').textContent = (d.usdtKrw||0).toLocaleString('ko-KR');
+    $('lcnt').textContent = d.lendingCount||'-';
+    $('pcnt').textContent = d.positiveCount||0;
+    $('upd').textContent = d.timestamp ? new Date(d.timestamp).toLocaleTimeString('ko-KR') : '-';
+    $('dot').className = 'dot dot-on';
+    $('stxt').textContent = '실시간';
+    $('errBox').innerHTML = d.error ? '<div class="err">'+d.error+'</div>' : '';
+    render();
+  }
+
+  // ── Sort ──
   document.querySelectorAll('thead th[data-k]').forEach(th => {
     th.addEventListener('click', () => {
       const k = th.dataset.k;
@@ -431,31 +174,41 @@
     });
   });
 
-  // ═══════════════════════════════════════════
-  // Auto-detect mode
-  // ═══════════════════════════════════════════
+  // ── WebSocket + REST fallback ──
+  let ws, wsDelay = 1000;
 
-  async function init() {
-    // If opened as file:// or if server is not reachable, use standalone mode
-    if (location.protocol === 'file:') {
-      console.log('File protocol detected, using standalone mode');
-      startStandaloneMode();
-      return;
-    }
-
-    // Try server first
-    const serverData = await tryServerMode();
-    if (serverData && !serverData.error) {
-      console.log('Server detected, using server mode');
-      processServerData(serverData);
-      startServerMode();
-    } else {
-      console.log('Server not available, using standalone mode');
-      startStandaloneMode();
-    }
+  function connectWS() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    try { ws = new WebSocket(proto + '//' + location.host); } catch { setTimeout(connectWS, wsDelay); return; }
+    ws.onopen = function() {
+      wsDelay = 1000;
+      $('dot').className = 'dot dot-on';
+      $('stxt').textContent = '실시간';
+    };
+    ws.onmessage = function(ev) {
+      try { onData(JSON.parse(ev.data)); } catch {}
+    };
+    ws.onclose = function() {
+      $('dot').className = 'dot dot-off';
+      $('stxt').textContent = '재연결 중';
+      setTimeout(connectWS, wsDelay);
+      wsDelay = Math.min(wsDelay * 1.5, 10000);
+    };
+    ws.onerror = function() {};
   }
 
-  init();
+  // REST polling as backup (every 5s when WS is down)
+  setInterval(async function() {
+    if (ws && ws.readyState === WebSocket.OPEN) return;
+    try {
+      const res = await fetch('/api/arbitrage', { signal: AbortSignal.timeout(5000) });
+      if (res.ok) onData(await res.json());
+    } catch {}
+  }, 5000);
+
+  // Initial REST fetch (fast first paint)
+  fetch('/api/arbitrage').then(r => r.json()).then(onData).catch(() => {});
+  connectWS();
 })();
 </script>
 </body>
